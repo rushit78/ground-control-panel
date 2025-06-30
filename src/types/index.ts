@@ -39,7 +39,9 @@ export interface GroundSlot {
   endTime: string;
   price: number;
   status: 'active' | 'inactive';
+  isActive: boolean;
   availableDays: string[];
+  bookings: any[];
 }
 
 export interface Subscription {
@@ -57,10 +59,14 @@ export interface Subscription {
 export interface UserSubscription {
   id: string;
   userId: string;
+  userName: string;
   subscriptionId: string;
+  planName: string;
   status: 'active' | 'expired' | 'cancelled';
   startDate: string;
   endDate: string;
+  price: number;
+  features: string[];
   autoRenew: boolean;
 }
 

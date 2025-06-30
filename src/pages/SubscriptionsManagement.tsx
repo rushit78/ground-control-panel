@@ -4,50 +4,53 @@ import { CreditCard, Users, TrendingUp, Calendar } from 'lucide-react';
 import StatsCard from '../components/ui/StatsCard';
 import DataTable from '../components/ui/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
-import { Subscription } from '../types';
+import { UserSubscription } from '../types';
 
-// Mock data
-const mockSubscriptions: Subscription[] = [
+// Mock data for user subscriptions
+const mockUserSubscriptions: UserSubscription[] = [
   {
     id: '1',
     userId: '1',
     userName: 'John Smith',
-    planId: '1',
+    subscriptionId: '1',
     planName: 'Premium',
     status: 'active',
     startDate: '2024-01-01',
     endDate: '2024-12-31',
     price: 99.99,
     features: ['Multiple Grounds', 'Priority Support', 'Analytics'],
+    autoRenew: true,
   },
   {
     id: '2',
     userId: '2',
     userName: 'Sarah Johnson',
-    planId: '2',
+    subscriptionId: '2',
     planName: 'Basic',
     status: 'active',
     startDate: '2024-01-15',
     endDate: '2024-07-15',
     price: 29.99,
     features: ['Single Ground', 'Basic Support'],
+    autoRenew: false,
   },
   {
     id: '3',
     userId: '3',
     userName: 'Mike Davis',
-    planId: '1',
+    subscriptionId: '1',
     planName: 'Premium',
     status: 'expired',
     startDate: '2023-06-01',
     endDate: '2023-12-01',
     price: 99.99,
     features: ['Multiple Grounds', 'Priority Support', 'Analytics'],
+    autoRenew: false,
   },
 ];
 
 const SubscriptionsManagement: React.FC = () => {
-  const [subscriptions] = useState<Subscription[]>(mockSubscriptions);
+  const [subscriptions] = useState<UserSubscription[]>(mockUserSubscriptions);
 
   const columns = [
     { key: 'userName', header: 'User' },
@@ -55,27 +58,27 @@ const SubscriptionsManagement: React.FC = () => {
     {
       key: 'price',
       header: 'Price',
-      render: (sub: Subscription) => `$${sub.price}`,
+      render: (sub: UserSubscription) => `$${sub.price}`,
     },
     {
       key: 'status',
       header: 'Status',
-      render: (sub: Subscription) => <StatusBadge status={sub.status} />,
+      render: (sub: UserSubscription) => <StatusBadge status={sub.status} />,
     },
     {
       key: 'startDate',
       header: 'Start Date',
-      render: (sub: Subscription) => new Date(sub.startDate).toLocaleDateString(),
+      render: (sub: UserSubscription) => new Date(sub.startDate).toLocaleDateString(),
     },
     {
       key: 'endDate',
       header: 'End Date',
-      render: (sub: Subscription) => new Date(sub.endDate).toLocaleDateString(),
+      render: (sub: UserSubscription) => new Date(sub.endDate).toLocaleDateString(),
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (sub: Subscription) => (
+      render: (sub: UserSubscription) => (
         <div className="flex space-x-2">
           <button className="text-blue-600 hover:text-blue-800 text-sm">
             View
