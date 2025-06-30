@@ -11,6 +11,8 @@ interface ModuleSetting {
   userSpecificSettings?: {
     userId: string;
     userName: string;
+    userType: 'ground_owner' | 'user' | 'admin';
+    isActive: boolean;
     isEnabled: boolean;
   }[];
 }
@@ -24,8 +26,10 @@ const ModuleSettings: React.FC = () => {
       isGloballyEnabled: true,
       icon: MapPin,
       userSpecificSettings: [
-        { userId: '1', userName: 'John Smith', isEnabled: true },
-        { userId: '2', userName: 'Sarah Johnson', isEnabled: false },
+        { userId: '1', userName: 'John Smith', userType: 'ground_owner', isActive: true, isEnabled: true },
+        { userId: '2', userName: 'Sarah Johnson', userType: 'ground_owner', isActive: true, isEnabled: false },
+        { userId: '3', userName: 'Mike Wilson', userType: 'ground_owner', isActive: false, isEnabled: true },
+        { userId: '4', userName: 'Regular User', userType: 'user', isActive: true, isEnabled: false },
       ],
     },
     {
@@ -35,8 +39,9 @@ const ModuleSettings: React.FC = () => {
       isGloballyEnabled: true,
       icon: CreditCard,
       userSpecificSettings: [
-        { userId: '1', userName: 'John Smith', isEnabled: true },
-        { userId: '2', userName: 'Sarah Johnson', isEnabled: true },
+        { userId: '1', userName: 'John Smith', userType: 'ground_owner', isActive: true, isEnabled: true },
+        { userId: '2', userName: 'Sarah Johnson', userType: 'ground_owner', isActive: true, isEnabled: true },
+        { userId: '3', userName: 'Mike Wilson', userType: 'ground_owner', isActive: false, isEnabled: false },
       ],
     },
     {
@@ -64,6 +69,19 @@ const ModuleSettings: React.FC = () => {
             ...module,
             userSpecificSettings: module.userSpecificSettings?.map(user =>
               user.userId === userId ? { ...user, isEnabled: !user.isEnabled } : user
+            ) || []
+          }
+        : module
+    ));
+  };
+
+  const toggleUserStatus = (moduleId: string, userId: string) => {
+    setModules(modules.map(module => 
+      module.id === moduleId 
+        ? {
+            ...module,
+            userSpecificSettings: module.userSpecificSettings?.map(user =>
+              user.userId === userId ? { ...user, isActive: !user.isActive } : user
             ) || []
           }
         : module
@@ -120,12 +138,12 @@ const ModuleSettings: React.FC = () => {
         </div>
       </div>
 
-      {/* User-Specific Settings */}
+      {/* User-Specific Settings - Ground Owners Only */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">User-Specific Module Controls</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Ground Owner Module Controls</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Control module access for individual users. Only applies to globally enabled modules.
+            Control module access for ground owners. Only applies to globally enabled modules.
           </p>
         </div>
         <div className="p-6">
@@ -133,6 +151,11 @@ const ModuleSettings: React.FC = () => {
             .filter(module => module.isGloballyEnabled && module.userSpecificSettings?.length)
             .map((module) => {
               const IconComponent = module.icon;
+              // Filter to show only ground owners
+              const groundOwners = module.userSpecificSettings?.filter(user => user.userType === 'ground_owner') || [];
+              
+              if (groundOwners.length === 0) return null;
+
               return (
                 <div key={module.id} className="mb-6 last:mb-0">
                   <div className="flex items-center space-x-2 mb-3">
@@ -140,29 +163,58 @@ const ModuleSettings: React.FC = () => {
                     <h3 className="font-medium text-gray-900">{module.name}</h3>
                   </div>
                   <div className="space-y-2">
-                    {module.userSpecificSettings?.map((userSetting) => (
+                    {groundOwners.map((userSetting) => (
                       <div
                         key={userSetting.userId}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                       >
-                        <span className="text-sm font-medium text-gray-900">
-                          {userSetting.userName}
-                        </span>
-                        <button
-                          onClick={() => toggleUserModule(module.id, userSetting.userId)}
-                          className={`flex items-center space-x-2 px-3 py-1 rounded text-xs transition-colors ${
-                            userSetting.isEnabled
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
-                          }`}
-                        >
-                          {userSetting.isEnabled ? (
-                            <ToggleRight className="w-4 h-4" />
-                          ) : (
-                            <ToggleLeft className="w-4 h-4" />
-                          )}
-                          <span>{userSetting.isEnabled ? 'Enabled' : 'Disabled'}</span>
-                        </button>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-medium text-gray-900">
+                            {userSetting.userName}
+                          </span>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            userSetting.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {userSetting.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {/* User Status Toggle */}
+                          <button
+                            onClick={() => toggleUserStatus(module.id, userSetting.userId)}
+                            className={`flex items-center space-x-1 px-2 py-1 rounded text-xs transition-colors ${
+                              userSetting.isActive
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                : 'bg-red-100 text-red-800 hover:bg-red-200'
+                            }`}
+                          >
+                            {userSetting.isActive ? (
+                              <ToggleRight className="w-3 h-3" />
+                            ) : (
+                              <ToggleLeft className="w-3 h-3" />
+                            )}
+                            <span>{userSetting.isActive ? 'Active' : 'Inactive'}</span>
+                          </button>
+                          
+                          {/* Module Access Toggle */}
+                          <button
+                            onClick={() => toggleUserModule(module.id, userSetting.userId)}
+                            className={`flex items-center space-x-1 px-2 py-1 rounded text-xs transition-colors ${
+                              userSetting.isEnabled
+                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {userSetting.isEnabled ? (
+                              <ToggleRight className="w-3 h-3" />
+                            ) : (
+                              <ToggleLeft className="w-3 h-3" />
+                            )}
+                            <span>{userSetting.isEnabled ? 'Enabled' : 'Disabled'}</span>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
