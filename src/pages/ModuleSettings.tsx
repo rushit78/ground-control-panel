@@ -1,471 +1,541 @@
 import React, { useState } from 'react';
-import { Settings, ToggleLeft, ToggleRight, Users, MapPin, CreditCard, Search, Filter, MoreVertical, Eye, EyeOff } from 'lucide-react';
+import { Settings, ToggleLeft, ToggleRight, Users, MapPin, CreditCard, Search, Filter, MoreVertical, Eye, EyeOff, Palette, Check } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import StatusBadge from '@/components/ui/StatusBadge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
-interface ModuleSetting {
-  id: string;
-  name: string;
-  description: string;
-  isGloballyEnabled: boolean;
-  icon: React.ComponentType<any>;
-  usage?: {
-    totalUsers: number;
-    activeUsers: number;
-    enabledUsers: number;
-  };
-  userSpecificSettings?: {
-    userId: string;
-    userName: string;
-    userType: 'ground_owner' | 'user' | 'admin';
-    isActive: boolean;
-    isEnabled: boolean;
-    lastActivity?: string;
-  }[];
-}
+// Color themes
+const colorThemes = [
+  { name: 'Blue', primary: '#3B82F6', secondary: '#EFF6FF', accent: '#1E40AF' },
+  { name: 'Green', primary: '#10B981', secondary: '#ECFDF5', accent: '#047857' },
+  { name: 'Purple', primary: '#8B5CF6', secondary: '#F3E8FF', accent: '#6D28D9' },
+  { name: 'Orange', primary: '#F97316', secondary: '#FFF7ED', accent: '#C2410C' },
+  { name: 'Pink', primary: '#EC4899', secondary: '#FDF2F8', accent: '#BE185D' },
+  { name: 'Teal', primary: '#14B8A6', secondary: '#F0FDFA', accent: '#0F766E' },
+  { name: 'Red', primary: '#EF4444', secondary: '#FEF2F2', accent: '#DC2626' },
+  { name: 'Indigo', primary: '#6366F1', secondary: '#EEF2FF', accent: '#4338CA' },
+];
 
 const ModuleSettings: React.FC = () => {
-  const [modules, setModules] = useState<ModuleSetting[]>([
+  const [modules, setModules] = useState([
     {
-      id: 'ground_management',
-      name: 'Ground Management',
-      description: 'Allow users to create and manage sports grounds',
-      isGloballyEnabled: true,
-      icon: MapPin,
-      usage: { totalUsers: 4, activeUsers: 3, enabledUsers: 2 },
-      userSpecificSettings: [
-        { userId: '1', userName: 'John Smith', userType: 'ground_owner', isActive: true, isEnabled: true, lastActivity: '2 hours ago' },
-        { userId: '2', userName: 'Sarah Johnson', userType: 'ground_owner', isActive: true, isEnabled: false, lastActivity: '1 day ago' },
-        { userId: '3', userName: 'Mike Wilson', userType: 'ground_owner', isActive: false, isEnabled: true, lastActivity: '3 days ago' },
-        { userId: '4', userName: 'Emma Davis', userType: 'ground_owner', isActive: true, isEnabled: true, lastActivity: '5 minutes ago' },
-      ],
-    },
-    {
-      id: 'subscription_module',
-      name: 'Subscription Module',
-      description: 'Enable subscription plans and premium features',
-      isGloballyEnabled: true,
-      icon: CreditCard,
-      usage: { totalUsers: 3, activeUsers: 2, enabledUsers: 2 },
-      userSpecificSettings: [
-        { userId: '1', userName: 'John Smith', userType: 'ground_owner', isActive: true, isEnabled: true, lastActivity: '1 hour ago' },
-        { userId: '2', userName: 'Sarah Johnson', userType: 'ground_owner', isActive: true, isEnabled: true, lastActivity: '2 hours ago' },
-        { userId: '3', userName: 'Mike Wilson', userType: 'ground_owner', isActive: false, isEnabled: false, lastActivity: '1 week ago' },
-      ],
-    },
-    {
-      id: 'group_creation',
-      name: 'Group Creation',
-      description: 'Allow users to create and join groups',
-      isGloballyEnabled: false,
+      id: 'users',
+      name: 'Users Management',
+      description: 'Manage users and their permissions',
       icon: Users,
-      usage: { totalUsers: 0, activeUsers: 0, enabledUsers: 0 },
-      userSpecificSettings: [],
+      isEnabled: true,
+      userSettings: [
+        { userId: 'user1', userName: 'John Doe', isActive: true, isEnabled: true },
+        { userId: 'user2', userName: 'Jane Smith', isActive: false, isEnabled: true },
+      ]
+    },
+    {
+      id: 'grounds',
+      name: 'Grounds Management',
+      description: 'Manage grounds and facilities',
+      icon: MapPin,
+      isEnabled: true,
+      userSettings: [
+        { userId: 'user1', userName: 'John Doe', isActive: true, isEnabled: false },
+        { userId: 'user3', userName: 'Mike Johnson', isActive: true, isEnabled: true },
+      ]
+    },
+    {
+      id: 'subscriptions',
+      name: 'Subscriptions',
+      description: 'Handle subscription management',
+      icon: CreditCard,
+      isEnabled: false,
+      userSettings: [
+        { userId: 'user2', userName: 'Jane Smith', isActive: true, isEnabled: true },
+      ]
     },
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [showInactiveUsers, setShowInactiveUsers] = useState(true);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  
+  // Color management state
+  const [selectedTheme, setSelectedTheme] = useState(colorThemes[0]);
+  const [customColors, setCustomColors] = useState({
+    primary: '#3B82F6',
+    secondary: '#EFF6FF',
+    accent: '#1E40AF',
+    background: '#FFFFFF',
+    text: '#1F2937',
+    border: '#E5E7EB'
+  });
+  const [activeColorTab, setActiveColorTab] = useState('themes');
 
-  const toggleGlobalModule = (moduleId: string) => {
-    setModules(modules.map(module => 
+  const toggleModule = (moduleId: string) => {
+    setModules(prev => prev.map(module => 
+      module.id === moduleId ? { ...module, isEnabled: !module.isEnabled } : module
+    ));
+  };
+
+  const toggleUserStatus = (moduleId: string, userId: string) => {
+    setModules(prev => prev.map(module => 
       module.id === moduleId 
-        ? { ...module, isGloballyEnabled: !module.isGloballyEnabled }
+        ? {
+            ...module,
+            userSettings: module.userSettings.map(user =>
+              user.userId === userId ? { ...user, isActive: !user.isActive } : user
+            )
+          }
         : module
     ));
   };
 
   const toggleUserModule = (moduleId: string, userId: string) => {
-    setModules(modules.map(module => 
+    setModules(prev => prev.map(module => 
       module.id === moduleId 
         ? {
             ...module,
-            userSpecificSettings: module.userSpecificSettings?.map(user =>
+            userSettings: module.userSettings.map(user =>
               user.userId === userId ? { ...user, isEnabled: !user.isEnabled } : user
-            ) || []
+            )
           }
         : module
     ));
   };
 
-  const toggleUserStatus = (moduleId: string, userId: string) => {
-    setModules(modules.map(module => 
-      module.id === moduleId 
-        ? {
-            ...module,
-            userSpecificSettings: module.userSpecificSettings?.map(user =>
-              user.userId === userId ? { ...user, isActive: !user.isActive } : user
-            ) || []
-          }
-        : module
-    ));
-  };
-
-  const handleBulkAction = (action: 'enable' | 'disable' | 'activate' | 'deactivate', moduleId: string) => {
-    setModules(modules.map(module => 
-      module.id === moduleId 
-        ? {
-            ...module,
-            userSpecificSettings: module.userSpecificSettings?.map(user =>
-              selectedUsers.includes(user.userId) 
-                ? { 
-                    ...user, 
-                    isEnabled: action === 'enable' ? true : action === 'disable' ? false : user.isEnabled,
-                    isActive: action === 'activate' ? true : action === 'deactivate' ? false : user.isActive
-                  } 
-                : user
-            ) || []
-          }
-        : module
-    ));
+  const handleBulkAction = (action: 'enable' | 'disable') => {
+    if (selectedUsers.length === 0) return;
+    
+    setModules(prev => prev.map(module => ({
+      ...module,
+      userSettings: module.userSettings.map(user =>
+        selectedUsers.includes(user.userId) 
+          ? { ...user, isEnabled: action === 'enable' } 
+          : user
+      )
+    })));
     setSelectedUsers([]);
   };
 
-  const filteredUsers = (users: ModuleSetting['userSpecificSettings']) => {
-    if (!users) return [];
-    
-    return users.filter(user => {
-      const matchesSearch = user.userName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = showInactiveUsers || user.isActive;
-      return matchesSearch && matchesFilter && user.userType === 'ground_owner';
+  // Color management functions
+  const applyTheme = (theme: typeof colorThemes[0]) => {
+    setSelectedTheme(theme);
+    setCustomColors({
+      ...customColors,
+      primary: theme.primary,
+      secondary: theme.secondary,
+      accent: theme.accent
     });
-  };
-
-  const handleSelectUser = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const handleSelectAll = (moduleUsers: ModuleSetting['userSpecificSettings']) => {
-    const filteredUserIds = filteredUsers(moduleUsers).map(user => user.userId);
-    const allSelected = filteredUserIds.every(id => selectedUsers.includes(id));
     
-    if (allSelected) {
-      setSelectedUsers(prev => prev.filter(id => !filteredUserIds.includes(id)));
-    } else {
-      setSelectedUsers(prev => [...new Set([...prev, ...filteredUserIds])]);
-    }
+    // Apply to CSS variables
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+    document.documentElement.style.setProperty('--accent-color', theme.accent);
   };
+
+  const applyCustomColor = (colorType: string, color: string) => {
+    setCustomColors(prev => ({ ...prev, [colorType]: color }));
+    document.documentElement.style.setProperty(`--${colorType}-color`, color);
+  };
+
+  const resetToDefault = () => {
+    const defaultTheme = colorThemes[0];
+    applyTheme(defaultTheme);
+  };
+
+  const filteredModules = modules.filter(module =>
+    module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    module.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <TooltipProvider>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Module Settings</h1>
-            <p className="text-gray-600">Control which modules are active globally and for specific users</p>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={isMaintenanceMode ? "destructive" : "outline"}
-                  onClick={() => setIsMaintenanceMode(!isMaintenanceMode)}
-                  className="flex items-center space-x-2"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>{isMaintenanceMode ? 'Exit Maintenance' : 'Maintenance Mode'}</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Toggle system-wide maintenance mode</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Module Settings</h1>
+          <p className="text-muted-foreground mt-2">
+            Configure modules and manage user permissions
+          </p>
         </div>
+        <div className="flex items-center gap-4">
+          <Badge variant={maintenanceMode ? "destructive" : "secondary"}>
+            {maintenanceMode ? "Maintenance Mode" : "Live"}
+          </Badge>
+          <Switch
+            checked={maintenanceMode}
+            onCheckedChange={setMaintenanceMode}
+          />
+        </div>
+      </div>
 
-        {isMaintenanceMode && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2">
-              <Settings className="w-5 h-5 text-yellow-600" />
-              <span className="text-yellow-800 font-medium">Maintenance Mode Active</span>
-            </div>
-            <p className="text-yellow-700 text-sm mt-1">All modules are temporarily disabled for system maintenance.</p>
-          </div>
-        )}
+      <Tabs defaultValue="modules" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="modules">Module Management</TabsTrigger>
+          <TabsTrigger value="colors">Color Settings</TabsTrigger>
+          <TabsTrigger value="users">User Controls</TabsTrigger>
+        </TabsList>
 
-        {/* Global Module Settings */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Global Module Controls</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              These settings affect all users. Disabled modules cannot be used by anyone.
-            </p>
-          </div>
-          <div className="p-6 space-y-4">
-            {modules.map((module) => {
-              const IconComponent = module.icon;
-              const isDisabled = isMaintenanceMode;
-              
-              return (
-                <div key={module.id} className={`p-4 border rounded-lg transition-all ${isDisabled ? 'opacity-60 bg-gray-50' : 'hover:shadow-sm'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 flex-1">
-                      <IconComponent className="w-6 h-6 text-gray-600" />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-medium text-gray-900">{module.name}</h3>
-                          {module.usage && (
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {module.usage.activeUsers}/{module.usage.totalUsers} active
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                {module.usage.enabledUsers} enabled
-                              </Badge>
-                            </div>
+        {/* Color Settings Tab */}
+        <TabsContent value="colors" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Color Management
+              </CardTitle>
+              <CardDescription>
+                Customize the application's color scheme and theme
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeColorTab} onValueChange={setActiveColorTab}>
+                <TabsList>
+                  <TabsTrigger value="themes">Preset Themes</TabsTrigger>
+                  <TabsTrigger value="custom">Custom Colors</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="themes" className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {colorThemes.map((theme) => (
+                      <div
+                        key={theme.name}
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          selectedTheme.name === theme.name
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => applyTheme(theme)}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-medium text-sm">{theme.name}</span>
+                          {selectedTheme.name === theme.name && (
+                            <Check className="h-4 w-4 text-blue-500" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">{module.description}</p>
+                        <div className="flex gap-2">
+                          <div
+                            className="w-6 h-6 rounded-full border"
+                            style={{ backgroundColor: theme.primary }}
+                          />
+                          <div
+                            className="w-6 h-6 rounded-full border"
+                            style={{ backgroundColor: theme.secondary }}
+                          />
+                          <div
+                            className="w-6 h-6 rounded-full border"
+                            style={{ backgroundColor: theme.accent }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={module.isGloballyEnabled && !isDisabled}
-                              onCheckedChange={() => !isDisabled && toggleGlobalModule(module.id)}
-                              disabled={isDisabled}
-                            />
-                            <span className={`text-sm font-medium ${
-                              module.isGloballyEnabled && !isDisabled
-                                ? 'text-green-600'
-                                : 'text-gray-500'
-                            }`}>
-                              {module.isGloballyEnabled && !isDisabled ? 'Enabled' : 'Disabled'}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{module.isGloballyEnabled ? 'Click to disable globally' : 'Click to enable globally'}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
+                    ))}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                </TabsContent>
 
-        {/* User-Specific Settings - Ground Owners Only */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">Ground Owner Module Controls</h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  Control module access for ground owners. Only applies to globally enabled modules.
-                </p>
+                <TabsContent value="custom" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Object.entries(customColors).map(([colorType, colorValue]) => (
+                      <div key={colorType} className="space-y-2">
+                        <Label className="text-sm font-medium capitalize">
+                          {colorType.replace(/([A-Z])/g, ' $1').trim()}
+                        </Label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={colorValue}
+                            onChange={(e) => applyCustomColor(colorType, e.target.value)}
+                            className="w-12 h-10 rounded border cursor-pointer"
+                          />
+                          <Input
+                            value={colorValue}
+                            onChange={(e) => applyCustomColor(colorType, e.target.value)}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
+                        <div
+                          className="w-full h-8 rounded border"
+                          style={{ backgroundColor: colorValue }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-4 pt-4">
+                    <Button onClick={resetToDefault} variant="outline">
+                      Reset to Default
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        // Save colors to localStorage or API
+                        localStorage.setItem('customColors', JSON.stringify(customColors));
+                      }}
+                      style={{ backgroundColor: customColors.primary, color: 'white' }}
+                    >
+                      Save Color Scheme
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* Color Preview */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Preview</CardTitle>
+              <CardDescription>See how your colors look in practice</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button 
+                  style={{ backgroundColor: customColors.primary, color: 'white' }}
+                  className="mr-2"
+                >
+                  Primary Button
+                </Button>
+                <Button 
+                  variant="outline" 
+                  style={{ borderColor: customColors.accent, color: customColors.accent }}
+                >
+                  Secondary Button
+                </Button>
+                
+                <div 
+                  className="p-4 rounded-lg border"
+                  style={{ 
+                    backgroundColor: customColors.secondary,
+                    borderColor: customColors.border,
+                    color: customColors.text
+                  }}
+                >
+                  <h3 className="font-semibold mb-2">Sample Card</h3>
+                  <p>This is how your content will look with the selected colors.</p>
+                </div>
               </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Module Management Tab */}
+        <TabsContent value="modules" className="space-y-6">
+          {/* Search and Filters */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Search users..."
+                    placeholder="Search modules..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64"
+                    className="pl-10"
                   />
                 </div>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowInactiveUsers(!showInactiveUsers)}
-                      className="flex items-center space-x-2"
-                    >
-                      {showInactiveUsers ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      <span>{showInactiveUsers ? 'Hide' : 'Show'} Inactive</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{showInactiveUsers ? 'Hide inactive users' : 'Show inactive users'}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                </Button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+
+          {/* Module Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Modules</p>
+                    <p className="text-2xl font-bold">{modules.length}</p>
+                  </div>
+                  <Settings className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Active Modules</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {modules.filter(m => m.isEnabled).length}
+                    </p>
+                  </div>
+                  <ToggleRight className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Inactive Modules</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {modules.filter(m => !m.isEnabled).length}
+                    </p>
+                  </div>
+                  <ToggleLeft className="h-8 w-8 text-red-600" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Ground Owners</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {modules.reduce((acc, m) => acc + m.userSettings.length, 0)}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          
-          <div className="p-6">
-            {modules
-              .filter(module => module.isGloballyEnabled && !isMaintenanceMode && module.userSpecificSettings?.length)
-              .map((module) => {
-                const IconComponent = module.icon;
-                const moduleUsers = filteredUsers(module.userSpecificSettings);
-                
-                if (moduleUsers.length === 0) {
-                  return (
-                    <div key={module.id} className="mb-6 last:mb-0">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <IconComponent className="w-5 h-5 text-gray-600" />
-                        <h3 className="font-medium text-gray-900">{module.name}</h3>
-                      </div>
-                      <div className="text-center py-8 text-gray-500">
-                        <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                        <p>No ground owners found matching your criteria</p>
-                      </div>
-                    </div>
-                  );
-                }
 
-                const allFilteredSelected = moduleUsers.every(user => selectedUsers.includes(user.userId));
-                const someFilteredSelected = moduleUsers.some(user => selectedUsers.includes(user.userId));
-
-                return (
-                  <div key={module.id} className="mb-6 last:mb-0">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-2">
-                        <IconComponent className="w-5 h-5 text-gray-600" />
-                        <h3 className="font-medium text-gray-900">{module.name}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          {moduleUsers.length} users
-                        </Badge>
-                      </div>
-                      
-                      {selectedUsers.length > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">{selectedUsers.length} selected</span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleBulkAction('enable', module.id)}
-                          >
-                            Enable Selected
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleBulkAction('disable', module.id)}
-                          >
-                            Disable Selected
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleBulkAction('activate', module.id)}
-                          >
-                            Activate Selected
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                        <Checkbox
-                          checked={allFilteredSelected}
-                          onCheckedChange={() => handleSelectAll(module.userSpecificSettings)}
-                          className="data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground"
-                          {...(someFilteredSelected && !allFilteredSelected ? { 'data-state': 'indeterminate' } : {})}
-                        />
-                        <span className="text-sm font-medium text-gray-600">Select All</span>
-                      </div>
-
-                      {moduleUsers.map((userSetting) => (
-                        <div
-                          key={userSetting.userId}
-                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          {/* Modules List */}
+          <div className="space-y-4">
+            {filteredModules.map((module) => {
+              const IconComponent = module.icon;
+              const activeUsers = module.userSettings.filter(u => u.isActive).length;
+              const enabledUsers = module.userSettings.filter(u => u.isEnabled).length;
+              
+              return (
+                <Card key={module.id} className="overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="p-2 rounded-lg"
+                          style={{ backgroundColor: customColors.secondary }}
                         >
-                          <div className="flex items-center space-x-3">
-                            <Checkbox
-                              checked={selectedUsers.includes(userSetting.userId)}
-                              onCheckedChange={() => handleSelectUser(userSetting.userId)}
-                            />
-                            
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {userSetting.userName}
-                                </span>
-                                <StatusBadge 
-                                  status={userSetting.isActive ? 'active' : 'inactive'} 
-                                  size="sm"
-                                />
-                                {userSetting.isEnabled && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    Module Enabled
-                                  </Badge>
-                                )}
+                          <IconComponent 
+                            className="h-6 w-6" 
+                            style={{ color: customColors.primary }}
+                          />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{module.name}</CardTitle>
+                          <CardDescription>{module.description}</CardDescription>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right text-sm text-gray-600">
+                          <div>{activeUsers}/{module.userSettings.length} active users</div>
+                          <div>{enabledUsers}/{module.userSettings.length} enabled</div>
+                        </div>
+                        <Switch
+                          checked={module.isEnabled}
+                          onCheckedChange={() => toggleModule(module.id)}
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  {module.isEnabled && (
+                    <CardContent className="pt-0">
+                      <Separator className="mb-4" />
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-medium text-gray-700">Ground Owner Access</h4>
+                          <Badge variant="outline" className="text-xs">
+                            {module.userSettings.length} users
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid gap-3">
+                          {module.userSettings.map((userSetting) => (
+                            <div 
+                              key={userSetting.userId} 
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className={`w-3 h-3 rounded-full ${
+                                      userSetting.isActive ? 'bg-green-500' : 'bg-red-500'
+                                    }`}
+                                  />
+                                  <span className="font-medium text-sm">{userSetting.userName}</span>
+                                </div>
+                                <Badge 
+                                  variant={userSetting.isActive ? "default" : "secondary"}
+                                  className="text-xs"
+                                >
+                                  {userSetting.isActive ? "Active" : "Inactive"}
+                                </Badge>
                               </div>
-                              {userSetting.lastActivity && (
-                                <p className="text-xs text-gray-500">
-                                  Last active: {userSetting.lastActivity}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center space-x-2">
+                              
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
                                   <Switch
                                     checked={userSetting.isActive}
                                     onCheckedChange={() => toggleUserStatus(module.id, userSetting.userId)}
                                   />
                                   <span className="text-xs text-gray-600">Status</span>
                                 </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Toggle user account status</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center space-x-2">
+                                
+                                <Separator orientation="vertical" className="h-6" />
+                                
+                                <div className="flex items-center gap-2">
                                   <Switch
                                     checked={userSetting.isEnabled}
                                     onCheckedChange={() => toggleUserModule(module.id, userSetting.userId)}
                                   />
                                   <span className="text-xs text-gray-600">Access</span>
                                 </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Toggle module access for this user</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            
-            {modules.every(module => !module.isGloballyEnabled || isMaintenanceMode || !module.userSpecificSettings?.length) && (
-              <div className="text-center py-12">
-                <Settings className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Modules</h3>
-                <p className="text-gray-600">
-                  {isMaintenanceMode 
-                    ? 'System is in maintenance mode. All modules are temporarily disabled.'
-                    : 'Enable modules globally to manage user-specific settings.'
-                  }
-                </p>
-              </div>
-            )}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
           </div>
-        </div>
-      </div>
-    </TooltipProvider>
+        </TabsContent>
+
+        {/* User Controls Tab */}
+        <TabsContent value="users" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bulk User Management</CardTitle>
+              <CardDescription>Manage multiple users at once</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleBulkAction('enable')}
+                    disabled={selectedUsers.length === 0}
+                    size="sm"
+                    style={{ backgroundColor: customColors.primary, color: 'white' }}
+                  >
+                    Enable Selected ({selectedUsers.length})
+                  </Button>
+                  <Button 
+                    onClick={() => handleBulkAction('disable')}
+                    disabled={selectedUsers.length === 0}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Disable Selected ({selectedUsers.length})
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
