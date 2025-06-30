@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Settings, ToggleLeft, ToggleRight, Users, MapPin, CreditCard, Search, Filter, MoreVertical, Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -420,7 +419,6 @@ const ModuleSettings: React.FC = () => {
                                   <Switch
                                     checked={userSetting.isActive}
                                     onCheckedChange={() => toggleUserStatus(module.id, userSetting.userId)}
-                                    size="sm"
                                   />
                                   <span className="text-xs text-gray-600">Status</span>
                                 </div>
@@ -436,7 +434,6 @@ const ModuleSettings: React.FC = () => {
                                   <Switch
                                     checked={userSetting.isEnabled}
                                     onCheckedChange={() => toggleUserModule(module.id, userSetting.userId)}
-                                    size="sm"
                                   />
                                   <span className="text-xs text-gray-600">Access</span>
                                 </div>
