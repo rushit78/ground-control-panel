@@ -8,6 +8,12 @@ import { AuthProvider } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AdminLayout from './components/layout/AdminLayout';
 import Dashboard from './pages/Dashboard';
+import UsersManagement from './pages/UsersManagement';
+import GroundsManagement from './pages/GroundsManagement';
+import SubscriptionsManagement from './pages/SubscriptionsManagement';
+import UserRequests from './pages/UserRequests';
+import ModuleSettings from './pages/ModuleSettings';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const queryClient = new QueryClient();
@@ -27,12 +33,12 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route index element={<Dashboard />} />
-              <Route path="users" element={<div>Users Management Coming Soon</div>} />
-              <Route path="grounds" element={<div>Grounds Management Coming Soon</div>} />
-              <Route path="subscriptions" element={<div>Subscriptions Management Coming Soon</div>} />
-              <Route path="requests" element={<div>User Requests Coming Soon</div>} />
-              <Route path="modules" element={<div>Module Settings Coming Soon</div>} />
-              <Route path="settings" element={<div>Settings Coming Soon</div>} />
+              <Route path="users" element={<UsersManagement />} />
+              <Route path="grounds" element={<GroundsManagement />} />
+              <Route path="subscriptions" element={<SubscriptionsManagement />} />
+              <Route path="requests" element={<UserRequests />} />
+              <Route path="modules" element={<ModuleSettings />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="/" element={<Navigate to="/admin" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
